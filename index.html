@@ -134,9 +134,10 @@
         <h2>Aturan Permainan 📜</h2>
         <p>1. Terdapat <b>6 Level</b> tantangan bilangan bulat.</p>
         <p>2. Setiap level berisi <b>4 Soal Isian Singkat</b>.</p>
-        <p>3. Jawab dengan mengetikkan angka jawaban yang tepat.</p>
-        <p>4. Kamu dibekali <b>5 Nyawa ❤️</b>.</p>
-        <p>5. Dilarang berpindah tab/halaman saat bermain!</p>
+        <p>3. <b>Durasi Waktu:</b><br>- Level 1-2: <b>1 Menit</b> / soal<br>- Level 3-6: <b>4 Menit</b> / soal</p>
+        <p>4. Jawab dengan mengetikkan angka jawaban yang tepat.</p>
+        <p>5. Kamu dibekali <b>5 Nyawa ❤️</b>.</p>
+        <p>6. Dilarang berpindah tab/halaman saat bermain!</p>
         <button onclick="startGame()" class="btn">Saya Siap, Mulai! 🔥</button>
     </div>
 
@@ -145,7 +146,7 @@
         <div class="game-header">
             <div><b id="display-level">LVL 1</b></div>
             <div class="lives" id="display-lives">❤️❤️❤️❤️❤️</div>
-            <div class="timer">⏳ <span id="display-timer">45</span>s</div>
+            <div class="timer">⏳ <span id="display-timer">01:00</span></div>
         </div>
 
         <div class="progress-container">
@@ -195,10 +196,9 @@
 
 <script>
 /**
- * MATHVENTURE - GAME ENGINE & LOGIC (FULL ISIAN SINGKAT)
+ * MATHVENTURE - GAME ENGINE & LOGIC
  */
 
-// URL APPS SCRIPT LANGSUNG TERHUBUNG
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz0SlGXLJtjaIHHGhKdlNiPfEkYJJn6foHFWlwq8HL6RNQV6wIYpz1HcnEwVoxGNfTpZQ/exec";
 
 // Player State
@@ -212,7 +212,7 @@ let gameState = {
     totalWrong: 0,
     isCheated: false,
     timer: null,
-    timeLeft: 45
+    timeLeft: 60
 };
 
 // Current Active Question Data
@@ -262,7 +262,14 @@ function getRandomNonZero(min, max) {
     return val;
 }
 
-// Math Problem Generators (Khusus Isian Singkat)
+// Format detik ke format mm:ss (Contoh: 240 -> 04:00)
+function formatTime(seconds) {
+    let m = Math.floor(seconds / 60);
+    let s = seconds % 60;
+    return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+// Math Problem Generators
 function generateQuestion(level, qIndex) {
     let q = { text: "", ans: 0, explanation: "" };
     
@@ -311,15 +318,13 @@ function generateQuestion(level, qIndex) {
         }
     }
     else if (level === 6) { // Soal Cerita
-        let mode = qIndex + 1; // Variasi soal berdasarkan nomor pertanyaan (1..4)
+        let mode = qIndex + 1;
         if (mode === 1) {
-            // TEMPLATE KHUSUS SOAL CATUR
             let totalMain = getRandomInt(8, 15);
             let menang = getRandomInt(3, totalMain - 3);
             let kalah = getRandomInt(1, totalMain - menang - 1);
             let seri = totalMain - menang - kalah;
 
-            // Aturan Skor Catur: Menang = 3, Seri = 1, Kalah = -1
             q.ans = (menang * 3) + (seri * 1) + (kalah * -1);
             q.text = `Budi mengikuti pertandingan catur sebanyak ${totalMain} kali. Dia menang ${menang} kali, kalah ${kalah} kali, dan sisanya seri. Jika menang dapat skor 3, seri 1, dan kalah -1, berapakah skor Budi?`;
             q.explanation = `Menang: ${menang} × 3 = ${menang*3}<br>Seri: ${seri} × 1 = ${seri}<br>Kalah: ${kalah} × (-1) = ${kalah*-1}<br>Total Skor = ${menang*3} + ${seri} + (${kalah*-1}) = ${q.ans}`;
@@ -388,12 +393,15 @@ function loadQuestion() {
     // Focus ke input jawaban
     setTimeout(() => inputAns.focus(), 100);
 
-    // Start Timer (45 Seconds per question)
-    gameState.timeLeft = 45;
-    document.getElementById('display-timer').innerText = gameState.timeLeft;
+    // DEDIKASI WAKTU BERDASARKAN LEVEL:
+    // Level 1-2 = 1 menit (60 detik)
+    // Level 3-6 = 4 menit (240 detik)
+    gameState.timeLeft = (gameState.level <= 2) ? 60 : 240;
+
+    document.getElementById('display-timer').innerText = formatTime(gameState.timeLeft);
     gameState.timer = setInterval(() => {
         gameState.timeLeft--;
-        document.getElementById('display-timer').innerText = gameState.timeLeft;
+        document.getElementById('display-timer').innerText = formatTime(gameState.timeLeft);
         if(gameState.timeLeft <= 0) {
             clearInterval(gameState.timer);
             checkAnswer(null); // Timeout -> Salah
@@ -425,7 +433,7 @@ function checkAnswer(userAns) {
 
     if (isCorrect) {
         gameState.totalCorrect++;
-        let points = (gameState.level * 100) + (gameState.timeLeft * 10) + (gameState.lives * 20);
+        let points = (gameState.level * 100) + (gameState.timeLeft * 2) + (gameState.lives * 20);
         gameState.score += points;
 
         fbBox.className = "feedback correct";
@@ -450,7 +458,6 @@ function checkAnswer(userAns) {
 function nextQuestion() {
     gameState.questionIdx++;
     if (gameState.questionIdx >= 4) {
-        // Level Selesai
         if (gameState.level < 6) {
             showLevelSummary();
         } else {
