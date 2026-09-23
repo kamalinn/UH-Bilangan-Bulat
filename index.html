@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MathVenture: Bilangan Bulat</title>
+    <style>
+        :root {
+            --bg-color: #f0f8ff;
+            --card-bg: #ffffff;
+            --primary: #4a90e2;
+            --secondary: #50e3c2;
+            --accent: #ff7675;
+            --text: #2d3436;
+            --pastel-green: #55efc4;
+            --pastel-red: #ff7675;
+            --pastel-yellow: #ffeaa7;
+            --pastel-blue: #74b9ff;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-family); }
+        body { background-color: var(--bg-color); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1, h2, h3 { text-align: center; color: var(--primary); margin-bottom: 15px; }
+        p { color: #636e72; line-height: 1.5; margin-bottom: 15px; }
+
+        /* Form Controls */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9em; }
+        input[type="text"], select {
+            width: 100%; padding: 12px; border: 2px solid #dfe6e9; border-radius: 10px;
+            font-size: 1em; transition: 0.3s; outline: none;
+        }
+        input[type="text"]:focus, select:focus { border-color: var(--primary); }
+
+        /* Buttons */
+        .btn {
+            width: 100%; padding: 14px; background: var(--primary); color: white; border: none;
+            border-radius: 12px; font-weight: bold; font-size: 1em; cursor: pointer;
+            transition: 0.2s transform, 0.2s background; margin-top: 10px;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-success { background: #00b894; }
+        .btn-danger { background: var(--pastel-red); }
+
+        /* Header Info Game */
+        .game-header {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #f1f2f6; padding: 10px 15px; border-radius: 12px; margin-bottom: 15px;
+        }
+        .lives { color: var(--accent); font-size: 1.2em; letter-spacing: 2px; }
+        .timer { font-weight: bold; color: #e17055; }
+
+        /* Progress Bar */
+        .progress-container { background: #dfe6e9; border-radius: 10px; height: 10px; width: 100%; margin-bottom: 15px; overflow: hidden; }
+        .progress-bar { background: var(--secondary); height: 100%; width: 0%; transition: width 0.3s ease; }
+
+        /* Soal Card */
+        .question-card {
+            background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 15px;
+            padding: 20px; text-align: center; margin-bottom: 20px; min-height: 120px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .question-text { font-size: 1.25em; font-weight: bold; color: #2d3436; }
+
+        /* Pilihan Jawaban */
+        .options-grid { display: grid; grid-template-columns: 100%; gap: 10px; margin-bottom: 15px; }
+        .opt-btn {
+            padding: 12px; background: white; border: 2px solid #b2bec3; border-radius: 10px;
+            font-size: 1.05em; font-weight: 600; cursor: pointer; text-align: center; transition: 0.2s;
+        }
+        .opt-btn:hover { background: #eccc68; border-color: #ffa502; }
+
+        /* Input Isian */
+        .input-answer { text-align: center; font-size: 1.2em; font-weight: bold; }
+
+        /* Feedback Modal/Box */
+        .feedback {
+            padding: 12px; border-radius: 10px; text-align: center; font-weight: bold;
+            margin-bottom: 15px; display: none;
+        }
+        .feedback.correct { background: #badc58; color: #222f3e; }
+        .feedback.incorrect { background: #ff7675; color: white; }
+
+        /* Reward Badge */
+        .reward-badge {
+            font-size: 3em; text-align: center; margin: 15px 0; animation: bounce 1s infinite alternate;
+        }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+
+        /* Screen Management */
+        .screen { display: none; }
+        .screen.active { display: block; }
+        
+        .explanation { font-size: 0.9em; font-weight: normal; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- SCREEN 1: REGISTRASI -->
+    <div id="screen-register" class="screen active">
+        <h1>🎮 MathVenture</h1>
+        <p style="text-align: center;">Petualangan Bilangan Bulat SMP</p>
+        <form id="form-register">
+            <div class="form-group">
+                <label>Nama Lengkap</label>
+                <input type="text" id="input-nama" required placeholder="Masukkan nama kamu">
+            </div>
+            <div class="form-group">
+                <label>Kelas</label>
+                <select id="input-kelas" required>
+                    <option value="">-- Pilih Kelas --</option>
+                    <option value="7A">7A</option>
+                    <option value="7B">7B</option>
+                    <option value="7C">7C</option>
+                    <option value="7D">7D</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Sekolah</label>
+                <input type="text" id="input-sekolah" required placeholder="Nama SMP kamu">
+            </div>
+            <button type="submit" class="btn btn-success">Mulai Petualangan 🚀</button>
+        </form>
+    </div>
+
+    <!-- SCREEN 2: PETUNJUK -->
+    <div id="screen-instructions" class="screen">
+        <h2>Aturan Permainan 📜</h2>
+        <p>1. Terdapat <b>6 Level</b> tantangan bilangan bulat.</p>
+        <p>2. Setiap level berisi <b>4 Soal</b> acak.</p>
+        <p>3. Kamu dibekali <b>5 Nyawa ❤️</b>.</p>
+        <p>4. Jangan berpindah tab/halaman saat bermain! (Anti-Curang).</p>
+        <button onclick="startGame()" class="btn">Saya Siap, Mulai! 🔥</button>
+    </div>
+
+    <!-- SCREEN 3: GAMEPLAY -->
+    <div id="screen-game" class="screen">
+        <div class="game-header">
+            <div><b id="display-level">LVL 1</b></div>
+            <div class="lives" id="display-lives">❤️❤️❤️❤️❤️</div>
+            <div class="timer">⏳ <span id="display-timer">45</span>s</div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+
+        <div class="question-card">
+            <div class="question-text" id="question-text">Loading Soal...</div>
+        </div>
+
+        <div id="answer-area">
+            <!-- Dynamic Answer Area (Pilihan Ganda atau Isian) -->
+        </div>
+
+        <div id="feedback-box" class="feedback"></div>
+
+        <button id="btn-next" class="btn" style="display:none;" onclick="nextQuestion()">Soal Berikutnya ➔</button>
+    </div>
+
+    <!-- SCREEN 4: SUMMARY LEVEL -->
+    <div id="screen-level-summary" class="screen">
+        <h2>🎉 Level Selesai!</h2>
+        <p id="summary-text" style="text-align: center; font-size: 1.1em;"></p>
+        <button onclick="continueNextLevel()" class="btn btn-success">Lanjut Level Berikutnya 🚀</button>
+    </div>
+
+    <!-- SCREEN 5: GAME OVER / RESULT -->
+    <div id="screen-result" class="screen">
+        <h2 id="result-title">HASIL AKHIR</h2>
+        <div id="reward-icon" class="reward-badge">🏆</div>
+        
+        <div style="background: #f1f2f6; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+            <p><b>Nama:</b> <span id="res-nama">-</span></p>
+            <p><b>Kelas:</b> <span id="res-kelas">-</span> | <b>Sekolah:</b> <span id="res-sekolah">-</span></p>
+            <p><b>Skor Akhir:</b> <span id="res-skor" style="font-size: 1.2em; color: var(--primary); font-weight: bold;">0</span></p>
+            <p><b>Level Tersebab/Tercapai:</b> <span id="res-level">1</span></p>
+            <p><b>Soal Benar:</b> <span id="res-benar">0</span> / <span id="res-total">24</span></p>
+            <p><b>Status:</b> <span id="res-status">-</span></p>
+        </div>
+
+        <p id="sync-status" style="font-size: 0.85em; text-align: center; color: #7f8c8d;"></p>
+
+        <button onclick="location.reload()" class="btn">Main Lagi 🔄</button>
+    </div>
+</div>
+
+<script>
+/**
+ * MATHVENTURE - GAME ENGINE & LOGIC
+ */
+
+// GANTI URL ENDPOINT GOOGLE APPS SCRIPT ANDA DI SINI!
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz0SlGXLJtjaIHHGhKdlNiPfEkYJJn6foHFWlwq8HL6RNQV6wIYpz1HcnEwVoxGNfTpZQ/exec";
+
+// Player State
+let playerData = { nama: "", kelas: "", sekolah: "" };
+let gameState = {
+    level: 1,
+    questionIdx: 0,
+    lives: 5,
+    score: 0,
+    totalCorrect: 0,
+    totalWrong: 0,
+    isCheated: false,
+    timer: null,
+    timeLeft: 45
+};
+
+// Current Active Question Data
+let currentQuestion = null;
+
+// Event Listeners Initialization
+document.getElementById('form-register').addEventListener('submit', function(e) {
+    e.preventDefault();
+    playerData.nama = document.getElementById('input-nama').value;
+    playerData.kelas = document.getElementById('input-kelas').value;
+    playerData.sekolah = document.getElementById('input-sekolah').value;
+    
+    showScreen('screen-instructions');
+});
+
+// Navigation Engine
+function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+}
+
+// Anti-Cheat (Visibility Change API)
+document.addEventListener("visibilitychange", function() {
+    if (document.hidden && document.getElementById('screen-game').classList.contains('active')) {
+        gameState.isCheated = true;
+        clearInterval(gameState.timer);
+        alert("PERMAINAN DIHENTIKAN 🚫\nKamu meninggalkan halaman permainan.");
+        endGame(false, "DISKUALIFIKASI (Pindah Tab)");
+    }
+});
+
+// Generator Utilities
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getRandomNonZero(min, max) {
+    let val = 0;
+    while(val === 0) val = getRandomInt(min, max);
+    return val;
+}
+
+// Math Problem Generators
+function generateQuestion(level) {
+    let q = { type: "mcq", text: "", ans: 0, options: [], explanation: "" };
+    
+    if (level === 1) { // Penjumlahan
+        let a = getRandomNonZero(-30, 30);
+        let b = getRandomNonZero(-30, 30);
+        q.text = `Berapakah hasil dari (${a}) + (${b})?`;
+        q.ans = a + b;
+        q.explanation = `(${a}) + (${b}) = ${q.ans}`;
+    } 
+    else if (level === 2) { // Pengurangan
+        let a = getRandomNonZero(-30, 30);
+        let b = getRandomNonZero(-30, 30);
+        q.text = `Berapakah hasil dari (${a}) - (${b})?`;
+        q.ans = a - b;
+        q.explanation = `(${a}) - (${b}) = (${a}) + (${-b}) = ${q.ans}`;
+    }
+    else if (level === 3) { // Perkalian
+        let a = getRandomNonZero(-15, 15);
+        let b = getRandomNonZero(-12, 12);
+        q.text = `Berapakah hasil dari (${a}) × (${b})?`;
+        q.ans = a * b;
+        q.explanation = `Perkalian tanda: ${a < 0 !== b < 0 ? 'Negatif' : 'Positif'}. Hasil = ${q.ans}`;
+    }
+    else if (level === 4) { // Pembagian Bulat
+        let b = getRandomNonZero(-12, 12);
+        let ans = getRandomNonZero(-15, 15);
+        let a = b * ans;
+        q.text = `Berapakah hasil dari (${a}) ÷ (${b})?`;
+        q.ans = ans;
+        q.explanation = `(${a}) ÷ (${b}) = ${q.ans}`;
+    }
+    else if (level === 5) { // Campuran
+        let a = getRandomInt(2, 10);
+        let b = getRandomNonZero(-5, 5);
+        let c = getRandomNonZero(-4, 4);
+        let mode = getRandomInt(1, 2);
+        if(mode === 1) {
+            q.text = `Hitung hasil dari: ${a} + (${b}) × (${c})`;
+            q.ans = a + (b * c);
+            q.explanation = `Kerjakan perkalian dulu: (${b}) × (${c}) = ${b*c}. Lalu ${a} + (${b*c}) = ${q.ans}`;
+        } else {
+            q.text = `Hitung hasil dari: (${a*c}) ÷ (${c}) - (${b})`;
+            q.ans = a - b;
+            q.explanation = `Kerjakan pembagian dulu: (${a*c}) ÷ (${c}) = ${a}. Lalu ${a} - (${b}) = ${q.ans}`;
+        }
+    }
+    else if (level === 6) { // Soal Cerita / Konsep
+        let mode = getRandomInt(1, 3);
+        if (mode === 1) {
+            let t1 = getRandomInt(-10, -1);
+            let t2 = getRandomInt(15, 32);
+            q.text = `Suhu di dalam kulkas adalah ${t1}°C, sedangkan suhu di luar ${t2}°C. Berapakah selisih suhu keduanya?`;
+            q.ans = t2 - t1;
+            q.explanation = `Selisih = Suhu Tinggi - Suhu Rendah = ${t2} - (${t1}) = ${q.ans}°C`;
+        } else if (mode === 2) {
+            let m = getRandomInt(3, 6); // menang
+            let k = getRandomInt(1, 4); // kalah
+            // Menang: +5, Kalah: -2
+            q.text = `Tim Timu bermain ${m+k} kali. Menang ${m} kali (skor 5) dan sisanya kalah (skor -2). Berapa total skor Timu?`;
+            q.ans = (m * 5) + (k * -2);
+            q.explanation = `Menang = ${m}×5 = ${m*5}. Kalah = ${k}×(-2) = ${k*-2}. Total = ${q.ans}`;
+        } else {
+            let x = getRandomInt(2, 8);
+            let y = getRandomInt(-5, -1);
+            q.text = `Jika a ⊗ b didefinisikan sebagai (2 × a) + b. Berapakah nilai dari ${x} ⊗ (${y})?`;
+            q.ans = (2 * x) + y;
+            q.explanation = `2 × (${x}) + (${y}) = ${2*x} + (${y}) = ${q.ans}`;
+        }
+    }
+
+    // Tentukan Tipe Input Soal secara Acak (Pilihan Ganda vs Isian)
+    if (Math.random() > 0.5) {
+        q.type = "input"; // Isian Singkat
+    } else {
+        q.type = "mcq"; // Pilihan Ganda
+        q.options = generateDistractors(q.ans);
+    }
+
+    return q;
+}
+
+function generateDistractors(correctAns) {
+    let opts = new Set([correctAns]);
+    while(opts.size < 4) {
+        let delta = getRandomNonZero(-5, 5);
+        opts.add(correctAns + delta);
+    }
+    return Array.from(opts).sort(() => Math.random() - 0.5);
+}
+
+// Game Controls
+function startGame() {
+    gameState.level = 1;
+    gameState.questionIdx = 0;
+    gameState.lives = 5;
+    gameState.score = 0;
+    gameState.totalCorrect = 0;
+    gameState.totalWrong = 0;
+    
+    showScreen('screen-game');
+    loadQuestion();
+}
+
+function loadQuestion() {
+    clearInterval(gameState.timer);
+    document.getElementById('feedback-box').style.display = 'none';
+    document.getElementById('btn-next').style.display = 'none';
+
+    // Update Header HUD
+    document.getElementById('display-level').innerText = `LVL ${gameState.level}`;
+    document.getElementById('display-lives').innerText = "❤️".repeat(gameState.lives) + "🖤".repeat(5 - gameState.lives);
+    
+    // Progress Bar
+    let progress = (gameState.questionIdx / 4) * 100;
+    document.getElementById('progress-bar').style.width = `${progress}%`;
+
+    // Load Question Object
+    currentQuestion = generateQuestion(gameState.level);
+    document.getElementById('question-text').innerText = currentQuestion.text;
+
+    // Render Answer Area
+    let area = document.getElementById('answer-area');
+    area.innerHTML = "";
+
+    if (currentQuestion.type === "mcq") {
+        let grid = document.createElement('div');
+        grid.className = 'options-grid';
+        currentQuestion.options.forEach(opt => {
+            let btn = document.createElement('button');
+            btn.className = 'opt-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(opt);
+            grid.appendChild(btn);
+        });
+        area.appendChild(grid);
+    } else {
+        let input = document.createElement('input');
+        input.type = 'number';
+        input.id = 'user-input-ans';
+        input.className = 'input-answer';
+        input.placeholder = 'Ketik jawaban...';
+
+        let btn = document.createElement('button');
+        btn.className = 'btn';
+        btn.innerText = 'Kirim Jawaban';
+        btn.onclick = () => {
+            let val = parseInt(document.getElementById('user-input-ans').value);
+            if(!isNaN(val)) checkAnswer(val);
+        };
+
+        area.appendChild(input);
+        area.appendChild(btn);
+    }
+
+    // Start Timer (45 Seconds per question)
+    gameState.timeLeft = 45;
+    document.getElementById('display-timer').innerText = gameState.timeLeft;
+    gameState.timer = setInterval(() => {
+        gameState.timeLeft--;
+        document.getElementById('display-timer').innerText = gameState.timeLeft;
+        if(gameState.timeLeft <= 0) {
+            clearInterval(gameState.timer);
+            checkAnswer(null); // Timeout -> Salah
+        }
+    }, 1000);
+}
+
+function checkAnswer(userAns) {
+    clearInterval(gameState.timer);
+    
+    // Disable Controls
+    document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+    let inputField = document.getElementById('user-input-ans');
+    if(inputField) inputField.disabled = true;
+
+    let isCorrect = (userAns === currentQuestion.ans);
+    let fbBox = document.getElementById('feedback-box');
+    fbBox.style.display = 'block';
+
+    if (isCorrect) {
+        gameState.totalCorrect++;
+        let points = (gameState.level * 100) + (gameState.timeLeft * 10) + (gameState.lives * 20);
+        gameState.score += points;
+
+        fbBox.className = "feedback correct";
+        fbBox.innerHTML = `✅ BENAR! (+${points} Poin)<div class="explanation">${currentQuestion.explanation}</div>`;
+    } else {
+        gameState.totalWrong++;
+        gameState.lives--;
+        document.getElementById('display-lives').innerText = "❤️".repeat(gameState.lives) + "🖤".repeat(5 - gameState.lives);
+
+        fbBox.className = "feedback incorrect";
+        let reason = userAns === null ? "Waktu Habis!" : "Jawaban Belum Tepat.";
+        fbBox.innerHTML = `❌ ${reason}<div class="explanation">Jawaban benar: <b>${currentQuestion.ans}</b>.<br>${currentQuestion.explanation}</div>`;
+    }
+
+    if (gameState.lives <= 0) {
+        setTimeout(() => endGame(false, "GAME OVER (Kehabisan Nyawa)"), 2000);
+    } else {
+        document.getElementById('btn-next').style.display = 'block';
+    }
+}
+
+function nextQuestion() {
+    gameState.questionIdx++;
+    if (gameState.questionIdx >= 4) {
+        // Level Selesai
+        if (gameState.level < 6) {
+            showLevelSummary();
+        } else {
+            endGame(true, "SELESAI (Master Matematika)");
+        }
+    } else {
+        loadQuestion();
+    }
+}
+
+function showLevelSummary() {
+    showScreen('screen-level-summary');
+    document.getElementById('summary-text').innerHTML = `
+        Kamu berhasil menyelesaikan <b>Level ${gameState.level}</b>!<br><br>
+        <b>Total Skor:</b> ${gameState.score}<br>
+        <b>Sisa Nyawa:</b> ${gameState.lives} ❤️
+    `;
+}
+
+function continueNextLevel() {
+    gameState.level++;
+    gameState.questionIdx = 0;
+    showScreen('screen-game');
+    loadQuestion();
+}
+
+function endGame(isWin, statusText) {
+    showScreen('screen-result');
+
+    let accuracy = (gameState.totalCorrect / (gameState.totalCorrect + gameState.totalWrong)) * 100;
+    let badge = "🔰";
+    let rewardTitle = "Petualang Pemula";
+
+    if (isWin) {
+        if (accuracy === 100) { badge = "🏆"; rewardTitle = "MASTER MATEMATIKA UTAMA"; }
+        else if (accuracy >= 80) { badge = "🥇"; rewardTitle = "KSATRIA BILANGAN BULAT"; }
+        else { badge = "🥈"; rewardTitle = "PENAUNG ANGKA"; }
+    } else {
+        if (gameState.level >= 4) { badge = "🎗️"; rewardTitle = "PEJUANG MATEMATIKA"; }
+    }
+
+    document.getElementById('result-title').innerText = isWin ? "SELAMAT! 🎉" : "GAME OVER 😵";
+    document.getElementById('reward-icon').innerText = badge;
+    document.getElementById('res-nama').innerText = playerData.nama;
+    document.getElementById('res-kelas').innerText = playerData.kelas;
+    document.getElementById('res-sekolah').innerText = playerData.sekolah;
+    document.getElementById('res-skor').innerText = `${gameState.score} (${rewardTitle})`;
+    document.getElementById('res-level').innerText = `Level ${gameState.level}`;
+    document.getElementById('res-benar').innerText = gameState.totalCorrect;
+    document.getElementById('res-total').innerText = gameState.totalCorrect + gameState.totalWrong;
+    document.getElementById('res-status').innerText = statusText;
+
+    sendDataToGoogleSheets(statusText, rewardTitle);
+}
+
+// Google Sheets Web Integration
+function sendDataToGoogleSheets(statusText, rewardTitle) {
+    let syncElement = document.getElementById('sync-status');
+    syncElement.innerText = "⏳ Menyimpan hasil ke database guru...";
+
+    let payload = {
+        waktu: new Date().toLocaleString('id-ID'),
+        nama: playerData.nama,
+        kelas: playerData.kelas,
+        sekolah: playerData.sekolah,
+        skor: gameState.score,
+        level: `Level ${gameState.level}`,
+        benar: gameState.totalCorrect,
+        salah: gameState.totalWrong,
+        status: statusText,
+        reward: rewardTitle
+    };
+
+    fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(() => {
+        syncElement.innerText = "✅ Data berhasil disimpan ke Google Sheets Guru!";
+        syncElement.style.color = "#00b894";
+    })
+    .catch(err => {
+        console.error(err);
+        syncElement.innerText = "⚠️ Gagal sinkron otomatis. Hasil tetap tersimpan di layar ini.";
+        syncElement.style.color = "#e17055";
+    });
+}
+</script>
+</body>
+</html>
